@@ -51,3 +51,5 @@ if not filtered_df.empty:
     #st.write(f"{random_song.iloc[0]['track_name']} by {random_song.iloc[0]['artist_name']}")    
 else:
     st.subheader("No songs available in the selected genre.")
+    st.sidebar.color_picker("pink")
+    
