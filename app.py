@@ -1,4 +1,4 @@
-   
+
 import streamlit as st
 import pandas as pd
 import spotipy
@@ -127,14 +127,3 @@ else:
         if st.session_state['library']:
             st.subheader("your library")
             st.table(pd.DataFrame(st.session_state['library']))
-
- # Pink sidebar color
-pink_color = "#FFC0CB"
-
-st.markdown(f"""
-    <style>
-        [data-testid="stSidebar"] {{
-            background-color: {pink_color};
-        }}
-    </style>
-    """, unsafe_allow_html=True)
