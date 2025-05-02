@@ -1,0 +1,150 @@
+import streamlit as st
+import pandas as pd
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+def add_song_to_lib(track_name, artist_name, genre, topic, release_date):
+    song = {
+            'track_name': random_song.iloc[0]['track_name'],
+            'artist_name': random_song.iloc[0]['artist_name'],
+            'genre': random_song.iloc[0]['genre'],
+            'topic': random_song.iloc[0]['topic'],
+            'release_date': random_song.iloc[0]['release_date']
+    }
+    # Add the song to the library
+    st.session_state.library.append(song)
+    st.toast(f"Added '{random_song.iloc[0]['track_name']}' to your library!")
+
+# Spotify API Setup
+client_id = '93140fd6bf824028b5f228353168d863'
+client_secret = '44e528d76c5b4724b7e05f40e26657a4'
+
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
+
+st.title("Find Your Favorite Music")
+st.markdown("This app helps you explore new songs based on your music taste.")
+st.sidebar.title("Navigation")
+st.sidebar.markdown("Use the sidebar to navigate through the app.")
+st.sidebar.subheader("About")
+st.sidebar.markdown("This app is built using Streamlit and allows users to explore a dataset of songs.")
+st.sidebar.subheader("Contact")
+st.sidebar.markdown("Highperformers.")
+
+# Initialize the library and preferences in session state if not already
+if "library" not in st.session_state:
+    st.session_state.library = []
+
+# Load the dataset
+@st.cache_data
+def load_data():
+    df = pd.read_csv('/Users/colinschlatter/Desktop/apptest/tcc_ceds_music.csv')
+    return df
+
+df = load_data()
+df = pd.read_csv('/Users/colinschlatter/Desktop/apptest/tcc_ceds_music.csv')
+# Preprocessing example: Remove missing data
+df_clean = df.dropna()
+
+# Show data preview
+st.subheader("Raw Data")
+st.write(df_clean)
+
+# Optional: Show basic stats
+st.subheader("Data Summary")
+st.write(df_clean.describe())
+
+# Optional: Show a pie chart of genres
+st.subheader("Genre Distribution")
+genre_counts = df_clean['genre'].value_counts()
+st.bar_chart(genre_counts)
+
+# Create 4 columns for Search, Topic, Era, and Genre Selection
+col1, col2, col3, col4 = st.columns(4)
+
+# Search bar
+with col1:
+    search_query = st.text_input("Search for a Song, Artist, or Genre:")
+
+# Topic selection
+with col2:
+    topic = st.selectbox('Choose a Topic:', df_clean['topic'].unique(), key='topic_select')
+
+# Era selection
+with col3:
+    df_clean['release_date'] = df_clean['release_date'].astype(int)
+
+    def get_era(year):
+        decade = (year // 10) * 10
+        return f"{str(decade)[-2:]}s"
+
+    df_clean['era'] = df_clean['release_date'].apply(get_era)
+    era = st.selectbox('Choose an Era:', sorted(df_clean['era'].unique()), key='era_select')
+
+# Genre selection
+with col4:
+    genre = st.selectbox('Choose a Genre:', df_clean['genre'].unique(), key='genre_select')
+
+# Apply filters based on selected criteria
+era_filtered_df = df_clean[df_clean['era'] == era]
+genre_filtered_df = era_filtered_df[era_filtered_df['genre'] == genre]
+final_filtered_df = genre_filtered_df[genre_filtered_df['topic'] == topic]
+
+# If the user inputs a search query, filter the results
+if search_query:
+    search_results = final_filtered_df[final_filtered_df['track_name'].str.contains(search_query, case=False) |
+                                       final_filtered_df['artist_name'].str.contains(search_query, case=False) |
+                                       final_filtered_df['genre'].str.contains(search_query, case=False)]
+    
+    if not search_results.empty:
+        st.subheader(f"Search Results for '{search_query}':")
+        st.write(search_results[['track_name', 'artist_name', 'genre', 'release_date']])
+        final_filtered_df = search_results  # Update the filtered data with search results
+    else:
+        st.write("No results found for your search.")
+else:
+    st.write("Type in the search box to find songs, artists, or genres.")
+
+# Display filtered songs after applying all filters
+st.subheader(f"Songs in {era} - Genre: {genre} - Topic: {topic}")
+st.write(final_filtered_df)
+
+if not final_filtered_df.empty:
+    random_song = final_filtered_df.sample(1)
+    st.subheader("Recommended Song")
+    st.markdown(f"Your recommended **{era} {genre}** song on **{topic}** is: **{random_song.iloc[0]['track_name']}** by **{random_song.iloc[0]['artist_name']}** 🎵")
+    
+    # "Like" Button to add song to the library
+    st.button(
+        label=f"Like {random_song.iloc[0]['track_name']} by {random_song.iloc[0]['artist_name']}",
+        on_click=add_song_to_lib,
+        args=(
+            random_song.iloc[0]['track_name'],
+            random_song.iloc[0]['artist_name'],
+            random_song.iloc[0]['genre'],
+            random_song.iloc[0]['topic'],
+            random_song.iloc[0]['release_date'],
+            )
+    )
+
+    # Search for the song on Spotify
+    query = f"{random_song.iloc[0]['track_name']} {random_song.iloc[0]['artist_name']}"
+    result = sp.search(q=query, type='track', limit=1)
+
+    if result['tracks']['items']:
+        preview_url = result['tracks']['items'][0]['preview_url']
+        if preview_url:
+            st.markdown(f"Listen to a preview of the song: [Click here to listen]({preview_url})")
+        else:
+            st.write("No preview available for this song, but you can listen to it on [Spotify](https://open.spotify.com/search/{query})")
+    else:
+        st.write("Song not found on Spotify.")
+else:
+    st.subheader("No songs available for this combination of genre, era, and topic.")
+
+# Display the library if it exists
+if st.session_state.library:
+    st.subheader("Your Library")
+    library_df = pd.DataFrame(st.session_state.library)
+    st.write(library_df)
+else:
+    st.write("Your library is empty.")
