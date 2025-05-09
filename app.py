@@ -143,18 +143,13 @@ st.plotly_chart(fig, use_container_width=True)
  
  
             # "like" button to add song to library using callback
-            st.button(
-                label=f"add to library",
-                key=f"like_{i}",
-                on_click=lambda track=s['track_name'], artist=s['artist_name'], genre=s['genre'], topic=s['topic'], release=s['release_date']: 
+            st.button(label=f"add to library",key=f"like_{i}",on_click=lambda track=s['track_name'], artist=s['artist_name'], genre=s['genre'], topic=s['topic'], release=s['release_date']: 
                     st.session_state['library'].append({
                         'track_name': track,
                         'artist_name': artist,
                         'genre': genre,
                         'topic': topic,
-                        'release_date': release
-                    })
-            )
+                        'release_date': release}))
         # show library
         if st.session_state['library']:
             st.subheader("your library")
