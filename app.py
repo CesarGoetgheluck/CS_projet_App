@@ -110,6 +110,40 @@ else:
             if res['tracks']['items']:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
                 st.markdown(f"[play on spotify]({url})")
+ 
+
+            pip install plotly
+            import plotly.graph_objects as go
+
+# Radar chart for audio features
+features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
+values = [s[feature] for feature in features]
+
+# Normalize loudness (optional: convert to 0–1 scale for radar)
+loud_min, loud_max = df['loudness'].min(), df['loudness'].max()
+values[-1] = (values[-1] - loud_min) / (loud_max - loud_min)  # normalize loudness
+
+fig = go.Figure(
+    data=[
+        go.Scatterpolar(
+            r=values + [values[0]],  # repeat first value to close the loop
+            theta=features + [features[0]],
+            fill='toself',
+            name=s['track_name']
+        )
+    ]
+)
+fig.update_layout(
+    polar=dict(
+        radialaxis=dict(visible=True, range=[0, 1])
+    ),
+    showlegend=False,
+    title="Audio Feature Profile"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+ 
+ 
             # "like" button to add song to library using callback
             st.button(
                 label=f"add to library",
