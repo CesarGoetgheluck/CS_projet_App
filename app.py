@@ -111,8 +111,6 @@ else:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
                 st.markdown(f"[play on spotify]({url})")
  
-
-            pip install plotly
             import plotly.graph_objects as go
 
 # Radar chart for audio features
