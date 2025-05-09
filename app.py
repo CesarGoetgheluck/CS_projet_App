@@ -107,7 +107,7 @@ else:
         for i, (_, s) in enumerate(recs.iterrows()):
             st.markdown(f"**{s['track_name']}** by {s['artist_name']} ({s['release_date']})")
             res = sp.search(q=f"{s['track_name']} {s['artist_name']}", type='track', limit=1)
-                        if res['tracks']['items']:
+            if res['tracks']['items']:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
                 st.markdown(f"[play on spotify]({url})")
 
