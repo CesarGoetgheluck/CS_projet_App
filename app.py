@@ -107,50 +107,34 @@ else:
         for i, (_, s) in enumerate(recs.iterrows()):
             st.markdown(f"**{s['track_name']}** by {s['artist_name']} ({s['release_date']})")
             res = sp.search(q=f"{s['track_name']} {s['artist_name']}", type='track', limit=1)
-            if res['tracks']['items']:
+                        if res['tracks']['items']:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
                 st.markdown(f"[play on spotify]({url})")
- 
-            import plotly.graph_objects as go
 
-# Radar chart for audio features
-features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
-values = [s[feature] for feature in features]
+                # 📈 Radar chart for audio features (INDENTED CORRECTLY)
+                import plotly.graph_objects as go
 
-# Normalize loudness (optional: convert to 0–1 scale for radar)
-loud_min, loud_max = df['loudness'].min(), df['loudness'].max()
-values[-1] = (values[-1] - loud_min) / (loud_max - loud_min)  # normalize loudness
+                features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
+                values = [s[feature] for feature in features]
 
-fig = go.Figure(
-    data=[
-        go.Scatterpolar(
-            r=values + [values[0]],  # repeat first value to close the loop
-            theta=features + [features[0]],
-            fill='toself',
-            name=s['track_name']
-        )
-    ]
-)
-fig.update_layout(
-    polar=dict(
-        radialaxis=dict(visible=True, range=[0, 1])
-    ),
-    showlegend=False,
-    title="Audio Feature Profile"
-)
+                # Normalize loudness
+                loud_min, loud_max = df['loudness'].min(), df['loudness'].max()
+                values[-1] = (values[-1] - loud_min) / (loud_max - loud_min)
 
-st.plotly_chart(fig, use_container_width=True)
- 
- 
-            # "like" button to add song to library using callback
-            st.button(label=f"add to library",key=f"like_{i}",on_click=lambda track=s['track_name'], artist=s['artist_name'], genre=s['genre'], topic=s['topic'], release=s['release_date']: 
-                    st.session_state['library'].append({
-                        'track_name': track,
-                        'artist_name': artist,
-                        'genre': genre,
-                        'topic': topic,
-                        'release_date': release}))
-        # show library
-        if st.session_state['library']:
-            st.subheader("your library")
-            st.table(pd.DataFrame(st.session_state['library']))
+                fig = go.Figure(
+                    data=[
+                        go.Scatterpolar(
+                            r=values + [values[0]],
+                            theta=features + [features[0]],
+                            fill='toself',
+                            name=s['track_name']
+                        )
+                    ]
+                )
+                fig.update_layout(
+                    polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+                    showlegend=False,
+                    title="Audio Feature Profile"
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
