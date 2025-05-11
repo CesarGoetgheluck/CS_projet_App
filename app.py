@@ -16,6 +16,20 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stAppViewContainer"] {
+        background-color: #f7d6e0; /* Main background */
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #f9e4ec; /* Sidebar background */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # Load logo
 logo = Image.open("soundsphere_logo.png")
 st.sidebar.image(logo, use_container_width=True)
