@@ -7,6 +7,7 @@ import spotipy
 from PIL import Image
 logo = Image.open("soundsphere_logo.png")
 st.sidebar.image(logo, use_container_width=True)
+st.sidebar.markdown("<p style='text-align: center; font-style: italic;'>Your mood. Your music.</p>", unsafe_allow_html=True)
 from spotipy.oauth2 import SpotifyClientCredentials
 
 @st.cache_data
