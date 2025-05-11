@@ -118,6 +118,11 @@ else:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
                 st.markdown(f"[play on spotify]({url})")
 
+                    # Show album cover
+    album_images = res['tracks']['items'][0]['album']['images']
+    if album_images:
+        st.image(album_images[0]['url'], caption='Album cover', width=200)
+
                 # 📈 Radar chart for audio features (INDENTED CORRECTLY)
                 import plotly.graph_objects as go
 
