@@ -57,7 +57,13 @@ dance_min, dance_max = st.slider("Danceability", 0.0, 1.0, (0.0, 1.0), step=0.01
 energy_min, energy_max = st.slider("Energy", 0.0, 1.0, (0.0, 1.0), step=0.01)
 acoustic_min, acoustic_max = st.slider("Acousticness", 0.0, 1.0, (0.0, 1.0), step=0.01)
 valence_min, valence_max = st.slider("Valence", 0.0, 1.0, (0.0, 1.0), step=0.01)
-loud_min, loud_max = st.slider("Loudness (dB)", float(df['loudness'].min()), float(df['loudness'].max()), step=0.1)
+loud_min, loud_max = st.slider(
+    "Loudness (dB)",
+    min_value=float(df['loudness'].min()),
+    max_value=float(df['loudness'].max()),
+    value=(float(df['loudness'].min()), float(df['loudness'].max())),
+    step=0.1
+)
 count = st.slider("Number of songs", 1, 5, 1)
 
 # Filter state logic
