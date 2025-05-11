@@ -1,14 +1,14 @@
-
 import streamlit as st
 import pandas as pd
-#spotipy is a lightweight Python library for forms and charts
 import spotipy
-#this followig is to import the pnj of the logo
 from PIL import Image
+import plotly.graph_objects as go
+from spotipy.oauth2 import SpotifyClientCredentials
+
+# Load logo
 logo = Image.open("soundsphere_logo.png")
 st.sidebar.image(logo, use_container_width=True)
 st.sidebar.markdown("<p style='text-align: center; font-style: italic;'>Your mood. Your music.</p>", unsafe_allow_html=True)
-from spotipy.oauth2 import SpotifyClientCredentials
 
 @st.cache_data
 def load_data():
@@ -17,10 +17,9 @@ def load_data():
     df['era'] = df['release_date'].apply(lambda y: f"{(y//10)*10}s")
     return df
 
-# load data
 df = load_data()
 
-# spotify client setup
+# Spotify API setup
 client_id = st.secrets["CLIENT_ID"]
 client_secret = st.secrets["CLIENT_SECRET"]
 sp = spotipy.Spotify(
@@ -30,123 +29,98 @@ sp = spotipy.Spotify(
     )
 )
 
-# set up sidebar
+# Sidebar content
 st.sidebar.subheader("About")
-st.sidebar.markdown("This app is built using Streamlit and allows users to explore a dataset of songs. Users can filter songs by genre, era, and topic, and even add their favorite songs to a personal library.")
+st.sidebar.markdown("This app helps you explore songs by genre, era, and vibe.")
 st.sidebar.subheader("Data Source")
-st.sidebar.markdown("The dataset used in this app is from the TCC CEDS Music dataset.")
+st.sidebar.markdown("Data: TCC CEDS Music dataset.")
 st.sidebar.subheader("Team")
-st.sidebar.markdown("this app is developed by Team 05.01.")
+st.sidebar.markdown("Developed by Team 05.01.")
 
-# initialize library
+# Initialize session state
 if 'library' not in st.session_state:
     st.session_state['library'] = []
 
-# app ui
-title = "SoundSphere, " \
-"personalised music recommender"
-st.title(title)
-st.markdown(
-    """
-1. choose **one or more genres**, **era**, **audio features** and **number of songs**.
-2. click **generate** to get songs.
-3. click **regenerate** to refresh.
-"""
-)
+# App title
+st.title("SoundSphere, personalised music recommender")
+st.markdown("""
+1. Choose **one or more genres**, an **era**, and tune audio feature sliders.  
+2. Click **generate** to get songs.  
+3. Click **regenerate** to refresh.
+""")
 
-# filters
-genres = st.multiselect("genres", df['genre'].unique())  # choose one or more genres
-era = st.selectbox("era", df['era'].unique())      # choose an era
-# audio feature sliders
-dance_min, dance_max = st.slider("danceability range", 0.0, 1.0, (0.0, 1.0), step=0.01)
-energy_min, energy_max = st.slider("energy range", 0.0, 1.0, (0.0, 1.0), step=0.01)
-acoustic_min, acoustic_max = st.slider("acousticness range", 0.0, 1.0, (0.0, 1.0), step=0.01)
-valence_min, valence_max = st.slider(
-    "valence range",
-    0.0, 1.0, (0.0, 1.0),
-    step=0.01,
-    help="valence measures musical positiveness: high (near 1) means cheerful/upbeat, low (near 0) means sad/tense"
-)
-loud_min, loud_max = st.slider(
-    "loudness (dB)",
-    float(df['loudness'].min()),
-    float(df['loudness'].max()),
-    (float(df['loudness'].min()), float(df['loudness'].max())),
-    step=0.1
-)
-count = st.slider("number of songs", 1, 5, 1) # how many songs to recommend("number of songs", 1, 5, 1)
+# Filters
+genres = st.multiselect("Genres", df['genre'].unique())
+era = st.selectbox("Era", df['era'].unique())
 
-# clear state on filter change
+dance_min, dance_max = st.slider("Danceability", 0.0, 1.0, (0.0, 1.0), step=0.01)
+energy_min, energy_max = st.slider("Energy", 0.0, 1.0, (0.0, 1.0), step=0.01)
+acoustic_min, acoustic_max = st.slider("Acousticness", 0.0, 1.0, (0.0, 1.0), step=0.01)
+valence_min, valence_max = st.slider("Valence", 0.0, 1.0, (0.0, 1.0), step=0.01)
+loud_min, loud_max = st.slider("Loudness (dB)", float(df['loudness'].min()), float(df['loudness'].max()), step=0.1)
+count = st.slider("Number of songs", 1, 5, 1)
+
+# Filter state logic
 current = (tuple(genres), era, count)
 if st.session_state.get('last_filters') != current:
     st.session_state['last_filters'] = current
     st.session_state.pop('recs', None)
     st.session_state.pop('generated', None)
 
-# filter dataset
+# Apply filters
 filtered = df.copy()
 if genres:
-    filtered = filtered[filtered['genre'].isin(genres)]  # filter by selected genres
-filtered = filtered[filtered['era'] == era]              # filter by era
+    filtered = filtered[filtered['genre'].isin(genres)]
+filtered = filtered[filtered['era'] == era]
 
 if filtered.empty:
-    st.warning("no songs found.")
+    st.warning("No songs found for this filter.")
 else:
-    # generate vs. regenerate buttons
-    generated = st.session_state.get('generated', False)  # tracks if recommendations generated
+    generated = st.session_state.get('generated', False)
     label = "generate" if not generated else "regenerate"
 
     def generate_songs():
-        n = min(count, len(filtered))  # number of songs to sample
-        recs = (
-            filtered
-            .sample(n)  # randomly pick n unique songs
-            .sort_values('release_date', ascending=False)  # sort newest first
-        )
-        st.session_state['recs'] = recs        # store sampled songs
-        st.session_state['generated'] = True   # mark generated flag
+        n = min(count, len(filtered))
+        recs = filtered.sample(n).sort_values('release_date', ascending=False)
+        st.session_state['recs'] = recs
+        st.session_state['generated'] = True
 
-    st.button(label, on_click=generate_songs)  # clicking invokes call back generate_songs and updates session_state, so that the button label changes to "regenerate recommendations" after the first click
+    st.button(label, on_click=generate_songs)
 
-    # display recommendations with like button
     recs = st.session_state.get('recs')
     if recs is not None:
         for i, (_, s) in enumerate(recs.iterrows()):
             st.markdown(f"**{s['track_name']}** by {s['artist_name']} ({s['release_date']})")
+
+            # Spotify preview
             res = sp.search(q=f"{s['track_name']} {s['artist_name']}", type='track', limit=1)
             if res['tracks']['items']:
                 url = res['tracks']['items'][0]['external_urls']['spotify']
-                st.markdown(f"[play on spotify]({url})")
+                st.markdown(f"[play on Spotify]({url})")
 
-                    # Show album cover
-    album_images = res['tracks']['items'][0]['album']['images']
-    if album_images:
-        st.image(album_images[0]['url'], caption='Album cover', width=200)
+                # Album cover
+                album_images = res['tracks']['items'][0]['album']['images']
+                if album_images:
+                    st.image(album_images[0]['url'], caption='Album cover', width=200)
 
-                # 📈 Radar chart for audio features (INDENTED CORRECTLY)
-import plotly.graph_objects as go
+            # Radar chart
+            features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
+            values = [s[feature] for feature in features]
+            values[-1] = (values[-1] - df['loudness'].min()) / (df['loudness'].max() - df['loudness'].min())
 
-                features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
-                values = [s[feature] for feature in features]
-
-                # Normalize loudness
-                loud_min, loud_max = df['loudness'].min(), df['loudness'].max()
-                values[-1] = (values[-1] - loud_min) / (loud_max - loud_min)
-
-                fig = go.Figure(
-                    data=[
-                        go.Scatterpolar(
-                            r=values + [values[0]],
-                            theta=features + [features[0]],
-                            fill='toself',
-                            name=s['track_name']
-                        )
-                    ]
-                )
-                fig.update_layout(
-                    polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-                    showlegend=False,
-                    title="Audio Feature Profile"
-                )
-
-                st.plotly_chart(fig, use_container_width=True)
+            fig = go.Figure(
+                data=[
+                    go.Scatterpolar(
+                        r=values + [values[0]],
+                        theta=features + [features[0]],
+                        fill='toself',
+                        name=s['track_name']
+                    )
+                ]
+            )
+            fig.update_layout(
+                polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+                showlegend=False,
+                title="Audio Feature Profile"
+            )
+            st.plotly_chart(fig, use_container_width=True)
