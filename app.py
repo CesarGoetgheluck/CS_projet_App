@@ -124,7 +124,7 @@ else:
         st.image(album_images[0]['url'], caption='Album cover', width=200)
 
                 # 📈 Radar chart for audio features (INDENTED CORRECTLY)
-                import plotly.graph_objects as go
+import plotly.graph_objects as go
 
                 features = ['danceability', 'energy', 'acousticness', 'valence', 'loudness']
                 values = [s[feature] for feature in features]
