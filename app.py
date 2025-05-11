@@ -5,6 +5,17 @@ from PIL import Image
 import plotly.graph_objects as go
 from spotipy.oauth2 import SpotifyClientCredentials
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #f9e4ec;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Load logo
 logo = Image.open("soundsphere_logo.png")
 st.sidebar.image(logo, use_container_width=True)
