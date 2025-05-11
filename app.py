@@ -2,7 +2,14 @@
 import streamlit as st
 import pandas as pd
 import spotipy
+from PIL import Image
+logo = Image.open("soundsphere_logo.png")
+st.sidebar.image(logo, use_column_width=True)
 from spotipy.oauth2 import SpotifyClientCredentials
+
+git add soundsphere_logo.png
+git commit -m "Add logo with correct name"
+git push
 
 @st.cache_data
 def load_data():
