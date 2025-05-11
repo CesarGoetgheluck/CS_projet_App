@@ -42,7 +42,7 @@ if 'library' not in st.session_state:
     st.session_state['library'] = []
 
 # app ui
-title = "SoundSphere " \
+title = "SoundSphere, " \
 "personalised music recommender"
 st.title(title)
 st.markdown(
