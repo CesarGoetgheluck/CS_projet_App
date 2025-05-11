@@ -6,7 +6,7 @@ import spotipy
 #this followig is to import the pnj of the logo
 from PIL import Image
 logo = Image.open("soundsphere_logo.png")
-st.sidebar.image(logo, use_column_width=True)
+st.sidebar.image(logo, use_container_width=True)
 from spotipy.oauth2 import SpotifyClientCredentials
 
 @st.cache_data
