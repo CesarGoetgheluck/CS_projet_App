@@ -7,10 +7,6 @@ logo = Image.open("soundsphere_logo.png")
 st.sidebar.image(logo, use_column_width=True)
 from spotipy.oauth2 import SpotifyClientCredentials
 
-git add soundsphere_logo.png
-git commit -m "Add logo with correct name"
-git push
-
 @st.cache_data
 def load_data():
     df = pd.read_csv('tcc_ceds_music.csv').dropna()
