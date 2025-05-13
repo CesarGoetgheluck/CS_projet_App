@@ -58,11 +58,24 @@ init_db()
 
 # --- Data Loading from SQLite ---
 @st.cache_data
+
+import pandas as pd
+import sqlite3
+import os
+
 def load_data():
-    conn = sqlite3.connect('music.db')
+    if not os.path.exists("music.db"):
+        df = pd.read_csv("tcc_ceds_music.csv").dropna()
+        df['release_date'] = df['release_date'].astype(int)
+        df['era'] = df['release_date'].apply(lambda y: f"{(y // 10) * 10}s")
+        conn = sqlite3.connect("music.db")
+        df.to_sql("songs", conn, if_exists="replace", index=False)
+        conn.close()
+
+    conn = sqlite3.connect("music.db")
     df = pd.read_sql_query("SELECT * FROM songs", conn)
-    conn.close()
     return df
+
 
 df = load_data()
 if 'library' not in st.session_state:
