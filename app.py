@@ -7,6 +7,24 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import sqlite3
+from PIL import Image
+
+# --- UI Theming ---
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #cce6ff;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Load logo
+logo = Image.open("soundsphere_logo.png")
+st.sidebar.image(logo)  # Removed use_container_width argument
+st.sidebar.markdown("<p style='text-align: center; font-style: italic;'>Your mood. Your music.</p>", unsafe_allow_html=True)
 
 # --- Database Initialization ---
 def init_db():
@@ -209,6 +227,16 @@ with tab1:
             if url:
                 st.markdown(f"[Play on Spotify]({url})")
 
+                # Album cover
+                res = sp.search(q=f"{s['track_name']} {s['artist_name']}", type='track', limit=1)
+                if res['tracks']['items']:
+                    album_images = res['tracks']['items'][0]['album']['images']
+                    if album_images:
+                        st.image(album_images[0]['url'], caption='Album cover', width=200)
+                else:
+                    st.warning("Album cover not found.")
+
+            # Radar chart
             features_chart = ['danceability', 'energy', 'acousticness', 'valence']
             values = [s[f] for f in features_chart]
             loud_norm = (s['loudness'] - loud_min) / (loud_max - loud_min)
@@ -248,7 +276,7 @@ with tab1:
 # --- Tab 2: Genre Predictor ---
 with tab2:
     st.title("🎶 Genre Predictor")
-    st.markdown("Enter your audio features to get your predicted genre suggestion with probability breakdown and feature importance.")
+    st.markdown("What is my best fitting genre? Find out here by adding your audio feautures to get your predicted genre with probability breakdown and importance of the feautures.")
 
     dance = st.slider("Danceability", 0.0, 1.0, 0.5)
     energy = st.slider("Energy", 0.0, 1.0, 0.5)
@@ -281,6 +309,7 @@ with tab2:
 # --- Tab 3: Playlists ---
 with tab3:
     st.title("📀 Your Playlists")
+    st.markdown("Create and manage your personalised playlists here.")
     user_id = 1  # placeholder until auth implemented
 
     with st.form("create_playlist_form"):
@@ -314,5 +343,4 @@ with tab3:
                 st.write(f"- **{t}** by {a}")
         else:
             st.write("_Playlist is empty._")
-
             
