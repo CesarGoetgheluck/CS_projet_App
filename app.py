@@ -59,7 +59,6 @@ init_db()
 # --- Data Loading from SQLite ---
 @st.cache_data
 
-import pandas as pd
 import sqlite3
 import os
 
