@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import sqlite3
 from PIL import Image
+import os
 
 # --- UI Theming ---
 st.markdown(
@@ -59,8 +60,6 @@ init_db()
 # --- Data Loading from SQLite ---
 @st.cache_data
 
-
-import os
 
 def load_data():
     if not os.path.exists("music.db"):
