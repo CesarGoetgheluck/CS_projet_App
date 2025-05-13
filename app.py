@@ -59,7 +59,7 @@ init_db()
 # --- Data Loading from SQLite ---
 @st.cache_data
 
-import sqlite3
+
 import os
 
 def load_data():
